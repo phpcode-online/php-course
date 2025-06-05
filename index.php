@@ -8,8 +8,8 @@
     <h1>Первое занятие.</h1>
     <form action="index.php" method="get">
         <p>Как Тебя зовут?</p>
-        <input type="text" name="name" value="">
-        <input type="submit" value="Приятно познакомиться">
+        <input type="text" name="name" value="" />
+        <input type="submit" value="Приятно познакомиться" />
     </form>
 </body>
 </html>
