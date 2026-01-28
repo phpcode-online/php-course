@@ -2,14 +2,14 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 9 - Суммируем результаты.</title>
+    <title>Урок 10 - работа с куками.</title>
 </head>
 <body>
 
-    <?php if (! empty($_POST['answers']) && is_array($_POST['answers'])) { ?>
+    <?php if (! empty($userAnswers) && is_array($userAnswers)) { ?>
         <p>Вы проголосовали:</p>
         <ul type="none">
-        <?php foreach ($_POST['answers'] as $questionid => $variantid) { ?>
+        <?php foreach ($userAnswers as $questionid => $variantid) { ?>
             <li><?=$questions[$questionid]['question']?> <b><?=$questions[$questionid]['variants'][$variantid]?></b></li>
         <?php } ?>
         </ul>

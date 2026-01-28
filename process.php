@@ -11,67 +11,44 @@ if (empty($_POST['answers'])) {
     die(0);
 }
 
+// если кука есть, то значит уже голосовали, перекинем сразу на результат голосования
+if (! empty($_COOKIE['quize'])) {
+    header('Location: result.php');
+    exit;
+}
+
 // подключим файл с массивом вопросов
 require_once 'questions.php';
 
+/////
+// создадим уникальную строку:
+// - возьмем текущее время с точностью до миллисекунды
+// - добавим к нему случайную строку
+// вероятность двух таких строк очень мала, значит можно считать такую строку уникальной
+
+$abc = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'O', 'I', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+// перемешаем элементы массива
+shuffle($abc);
+// объединим все элементы массива
+$abc = implode('', $abc);
+// возьмем 20 первых символов
+$abc = substr($abc, 0, 20);
+// добавим получившуюся строку к текущему времени с миллисекундами
+$cookie = 'quize' . microtime(true) . $abc;
+
+// отправим куки браузеру (куки будет хранится в браузере 30 дней)
+setcookie("quize", $cookie, time() + (3600 * 24 * 30), "/", "", false, true);
+
+$_COOKIE['quize'] = $cookie;
+
 // если есть ответы от пользователя,
-// то запишем их в файл, в формате: код вопроса;код ответа
+// то запишем их в файл, в формате: код вопроса;код ответа;кука
 if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
     $f = fopen('vote.txt', 'a');
     foreach ($_POST['answers'] as $questionid => $variantid) {
-        fwrite($f, $questionid . ';' . $variantid . "\n");
+        fwrite($f, $questionid . ';' . $variantid . ";" . $_COOKIE['quize'] . "\n");
     }
     fclose($f);
 }
 
-// если файл с результатами существует, то обработаем его
-$total = array(
-    // $questionid => array(vote => N, variants=> array(variantid1 => M1, variantid2 => M3, ...) )
-);
-if (file_exists('vote.txt')) {
-    // считали весь файл (если файл большой, то может не влезть в память)
-    $votes = file_get_contents('vote.txt');
-    // файл это строка - разобьем ее на части используя перенос строки "\n" в качестве разделителя
-    $votes = explode("\n", $votes);
-
-    // пробежимся по получившемуся маcсиву
-    foreach ($votes as $string) {
-        // каждая строчка представляет собой пару, вопрос;ответ
-        $pair = explode(';', $string);
-
-        // если строчка не соответствует нашим критериям - то проигнорируем ее
-        if (!isset($pair[0]) || !isset($pair[1])) {
-            continue;
-        }
-        $questionid = intval($pair[0]);
-        $answerid = $pair[1];
-
-        // если вопроса с указанным кодом нет, то пропустим
-        if (empty($questions[$questionid])) {
-            continue;
-        }
-        if (empty($questions[$questionid]['variants'][$answerid])) {
-            continue;
-        }
-
-        if (empty($total[$questionid])) {
-            $total[$questionid] = array(
-                'votes' => 0,
-                'question' => $questions[$questionid]['question'],
-                'answers' => array()
-            );
-        }
-
-        if (empty($total[$questionid]['answers'][$answerid])) {
-            $total[$questionid]['answers'][$answerid] = array(
-                'answer' => $questions[$questionid]['variants'][$answerid],
-                'votes' => 0
-            );
-        }
-
-        $total[$questionid]['answers'][$answerid]['votes']++;
-        $total[$questionid]['votes']++;
-    }
-}
-
-require_once 'results.tpl.php';
+header('Location: result.php');
