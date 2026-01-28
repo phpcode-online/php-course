@@ -9,7 +9,8 @@
 * Урок 08: [Опросник - начало](https://github.com/phpcode-online/php-course/tree/lesson-08)
 * Урок 09: [Опросник - работа с файлами](https://github.com/phpcode-online/php-course/tree/lesson-09)
 * Урок 10: [Опросник - работа с куками](https://github.com/phpcode-online/php-course/tree/lesson-10)
-* Урок 12: Опросник - блокировка по строкам
+* Урок 12: [Опросник - блокировка по строкам](https://github.com/phpcode-online/php-course/tree/lesson-12)
+* Урок 14: Опросник - знакомство с кешем
 
 
 Курс расположен на [phpcode.online](https://phpcode.online)

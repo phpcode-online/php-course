@@ -79,6 +79,11 @@ if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
     $f = fopen($fileName, 'w');
     fwrite($f, serialize($_POST['answers']));
     fclose($f);
+
+    if (file_exists($fullPath . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'vote.cache')) {
+        // удалим кеш с общими результатами голосования
+        unlink($fullPath . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'vote.cache');
+    }
 }
 
 header('Location: result.php');
