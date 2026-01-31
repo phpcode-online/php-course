@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 12 - Суммируем результаты.</title>
+    <title>Урок 18 - Суммируем результаты.</title>
 </head>
 <body>
 

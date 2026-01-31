@@ -2,10 +2,10 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 12 - разрешаем изменять свой вариант голосования</title>
+    <title>Урок 18 - разрешаем изменять свой вариант голосования</title>
 </head>
 <body>
-    <h1>Урок 12.</h1>
+    <h1>Урок 18.</h1>
     <form action="process.php" method="POST">
         <?php foreach ($questions as $questionid => $question) { ?>
         <p><?=$question['question']?></p>

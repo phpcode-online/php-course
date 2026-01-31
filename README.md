@@ -10,8 +10,16 @@
 * Урок 09: [Опросник - работа с файлами](https://github.com/phpcode-online/php-course/tree/lesson-09)
 * Урок 10: [Опросник - работа с куками](https://github.com/phpcode-online/php-course/tree/lesson-10)
 * Урок 12: [Опросник - блокировка по строкам](https://github.com/phpcode-online/php-course/tree/lesson-12)
-* Урок 14: Опросник - знакомство с кешем
+* Урок 14: [Опросник - знакомство с кешем](https://github.com/phpcode-online/php-course/tree/lesson-14)
+* Урок 18: Опросник - работа с БД
 
+# Запуск
+
+Устновить себе репозиторий.
+Переименовать config.db.example.php в config.db.php
+Прописать в config.db.php название БД, логин, пароль, адрес и порт БД
+После этого можно запустить команду в терминале: php -S localhost:8080
+Открыть в браузере http://localhost:8080
 
 Курс расположен на [phpcode.online](https://phpcode.online)
  
