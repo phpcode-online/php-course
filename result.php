@@ -56,55 +56,48 @@ if ($cookieid > '') {
 
 // если кеша нет, то создадим его
 if (! file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
+    // переложим подсчет результатов на плечи БД
+    $sql = "SELECT questionid, variantid, count(id) as vote FROM q_useranswers GROUP BY questionid, varinatid;";
+    $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+    $result = $sth->execute();
 
-    $userAnswerId = 0;
-    // так как ответов может быть много, то начнем запрашивать их порциями, по 500 штук.
-    // Как только вернется меньше 500 записей, значит мы получили последнюю запись
-    // и можно выходить из цикла. Чтобы не было повторных записей, мы отсортируем все записи по id
-    // и запрашивать будет только те, которые больше последнего полученного id
-    do {
-        $sql = "SELECT * FROM q_useranswers WHERE id > :userAnswerId ORDER BY id asc LIMIT 500";
-        $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $result = $sth->execute(['useranswerid' => $userAnswerId]);
+    if ($result) {
 
-        $cntRows = 0;
-        if ($result) {
+        // пройдемся по всем полученным данным и заполним массив с ответами пользователя
+        while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
-            // пройдемся по всем полученным данным и заполним массив с ответами пользователя
-            while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-                $cntRows ++;
-                $userAnswerId = $row['id'];
-                $questionId = $row['questionid'];
-                $answerId = $row['variantid'];
+            $questionId = $row['questionid'];
+            $answerId = $row['variantid'];
+            $vote = $row['vote'];
 
-                // если вопроса с указанным кодом нет, то пропустим
-                if (
-                    empty($questions[$questionId])
-                    || empty($questions[$questionId]['variants'][$answerId])
-                ) {
-                    continue;
-                }
-
-                if (empty($total[$questionId])) {
-                    $total[$questionId] = [
-                        'votes' => 0,
-                        'question' => $questions[$questionId]['question'],
-                        'answers' => []
-                    ];
-                }
-
-                if (empty($total[$questionId]['answers'][$answerId])) {
-                    $total[$questionId]['answers'][$answerId] = [
-                        'answer' => $questions[$questionId]['variants'][$answerId],
-                        'votes' => 0
-                    ];
-                }
-
-                $total[$questionId]['answers'][$answerId]['votes']++;
-                $total[$questionId]['votes']++;
+            // если вопроса с указанным кодом нет, то пропустим
+            if (
+                empty($questions[$questionId])
+                || empty($questions[$questionId]['variants'][$answerId])
+            ) {
+                continue;
             }
+
+            // если мы еще не заполняли количество ответов для этого вопроса,
+            // то подготовим массиы
+            if (empty($total[$questionId])) {
+                $total[$questionId] = [
+                    'votes' => 0,
+                    'question' => $questions[$questionId]['question'],
+                    'answers' => []
+                ];
+            }
+
+            // из БД мы берем уже подсчитанное число голосов, поэтому сразу
+            // его запишем в ответы и прибавим его же к общему числу
+            $total[$questionId]['answers'][$answerId] = array(
+                'answer' => $questions[$questionId]['variants'][$answerId],
+                'votes' => $vote
+            );
+
+            $total[$questionId]['votes'] += $vote;
         }
-    } while ($cntRows >= 500);
+    }
 
     // сохраним результат в специальный файл - кеш
     file_put_contents($fullPath . DIRECTORY_SEPARATOR . 'vote.cache', serialize($total));

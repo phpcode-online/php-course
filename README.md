@@ -11,7 +11,8 @@
 * Урок 10: [Опросник - работа с куками](https://github.com/phpcode-online/php-course/tree/lesson-10)
 * Урок 12: [Опросник - блокировка по строкам](https://github.com/phpcode-online/php-course/tree/lesson-12)
 * Урок 14: [Опросник - знакомство с кешем](https://github.com/phpcode-online/php-course/tree/lesson-14)
-* Урок 18: Опросник - работа с БД
+* Урок 18: [Опросник - работа с БД](https://github.com/phpcode-online/php-course/tree/lesson-18)
+* Урок 19: Опросник - оптимизируем выборку
 
 # Запуск
 

@@ -61,6 +61,28 @@ try {
     // если есть ответы от пользователя,
     // то запишем их в БД
     if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
+        // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
+        $sql = "SELECT id, questionid, variantid FROM q_useranswers WHERE userid = :cookieid LIMIT 100";
+        $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        $result = $sth->execute(['cookieid' => $cookieid]);
+        if ($result) {
+            while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+                // если пользователь уже отвечал на вопрос, то удалим его ответ из массива
+                if (isset($_POST['answers'][$row['questionid']])) {
+                    // если пользователь изменил ответ, то обновим его и в БД
+                    if ($row['variantid'] != $_POST['answers'][$row['questionid']]) {
+                        $sql = "UPDATE q_useranswers SET variantid=:variantid WHERE id=:answerid AND userid=:cookieid";
+                        $sth = $pdo->prepare($sql);
+                        $result = $sth->execute([
+                            'cookieid' => $cookieid,
+                            'answerid' => $row['id'],
+                            'variantid' => $_POST['answers'][$row['questionid']]
+                        ]);
+                    }
+                    unset($_POST['answers'][$row['questionid']]);
+                }
+            }
+        }
 
         foreach ($_POST['answers'] as $questionId => $variantId) {
             // все данные, которые приходят через интернет, нужно проверять на валидность
@@ -68,43 +90,22 @@ try {
             $questionId = intval($questionId);
             $variantId = intval($variantId);
 
-            // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
-            $sql = "SELECT id FROM q_useranswers WHERE userid = :cookieid AND questionid= :questionid LIMIT 1";
-            $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-            $result = $sth->execute(['cookieid' => $cookieid, 'questionid' => $questionId]);
-
-            // заведем флаг, который будет означать, что пользователь голосовал
-            $answerId = 0;
-
-            if ($result) {
-                $row = $sth->fetch(PDO::FETCH_ASSOC);
-                // если пользователь уже отвечал на вопрос, то изменим значение флага на код записи голосования
-                if (! empty($row['id'])) {
-                    $answerId = $row['id'];
-                }
-            }
-
-            if ($answerId == 0) {
-                // если пользователь не голосовал, нам нужен запрос на добавление данных
-                $sql = "INSERT INTO q_useranswers (userid, questionid, variantid) VALUES (:cookieid,:questionid,:variantid)";
-                $sth = $pdo->prepare($sql);
-                $result = $sth->execute([
-                    'cookieid' => $cookieid,
-                    'questionid' => $questionId,
-                    'variantid' => $variantId
-                ]);
-                $answerId = $pdo->lastInsertId();
-            } else {
-                // если пользователь голосовал, то нужно обновить данные
-                $sql = "UPDATE q_useranswers SET variantid=:variantid WHERE id=:answerid AND userid=:cookieid";
-                $sth = $pdo->prepare($sql);
-                $result = $sth->execute([
-                    'cookieid' => $cookieid,
-                    'answerid' => $answerId,
-                    'variantid' => $variantId
-                ]);
-            }
+            // если пользователь не голосовал, нам нужен запрос на добавление данных
+            $sql = "INSERT INTO q_useranswers (userid, questionid, variantid) VALUES (:cookieid,:questionid,:variantid)";
+            $sth = $pdo->prepare($sql);
+            $result = $sth->execute([
+                'cookieid' => $cookieid,
+                'questionid' => $questionId,
+                'variantid' => $variantId
+            ]);
+            $answerId = $pdo->lastInsertId();
         }
+    }
+
+    if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
+        // удалим кеш, чтобы при следующем просмотре результатов
+        // данные пересчитались заново
+        unlink($fullPath . DIRECTORY_SEPARATOR . 'vote.cache');
     }
 
     header('Location: result.php');
