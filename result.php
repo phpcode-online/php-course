@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
-require_once 'questions.php';
+// подключаемся к БД
+// @var pdo PDO
+$pdo = $pdo ?? require_once "pdo.inc.php";
+
+$questions = require_once 'questions.php';
 
 $fullPath = __DIR__;
 $cookieid = isset($_COOKIE['quize']) ? $_COOKIE['quize'] : '';
@@ -23,13 +27,8 @@ $total = array(
     // $questionid => array(vote => N, arVariants=> array(variantid1 => M1, variantid2 => M3, ...) )
 );
 
-// подключаемся к БД
-// @var pdo PDO
-$pdo = $pdo ?? require_once "pdo.inc.php";
-
 // если кука есть проверим, голосовал ли человек
 if ($cookieid > '') {
-
     // запросим все данные по ответам пользователя
     $sql = "SELECT * FROM q_useranswers WHERE userid = :cookieid";
     $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -55,17 +54,15 @@ if ($cookieid > '') {
 }
 
 // если кеша нет, то создадим его
-if (! file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
+if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
     // переложим подсчет результатов на плечи БД
-    $sql = "SELECT questionid, variantid, count(id) as vote FROM q_useranswers GROUP BY questionid, varinatid;";
+    $sql = "SELECT questionid, variantid, count(id) as vote FROM q_useranswers GROUP BY questionid, variantid;";
     $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
     $result = $sth->execute();
 
     if ($result) {
-
         // пройдемся по всем полученным данным и заполним массив с ответами пользователя
         while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-
             $questionId = $row['questionid'];
             $answerId = $row['variantid'];
             $vote = $row['vote'];

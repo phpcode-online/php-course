@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 19 - оптимизируем.</title>
+    <title>Урок 21 - загрузка в БД</title>
 </head>
 <body>
 
@@ -23,7 +23,7 @@
             <h4><?=$question['question']?></h4>
             <ul>
                 <?php foreach ($question['answers'] as $answer) { ?>
-                    <li><?=$answer['answer']?> - <?=$answer['votes']?> <span style="color: #999999;">(<?=intval($answer['votes']*100.0/$question['votes'])?>%)</span></li>
+                    <li><?=$answer['answer']?> - <?=$answer['votes']?> <span style="color: #999999;">(<?= intval($answer['votes'] * 100.0 / $question['votes']) ?>%)</span></li>
                 <?php } ?>
             </ul>
         <?php } ?>

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-// подключаем список вопросов
-require_once 'questions.php';
-
 // подключаемся к БД
 // @var pdo PDO
 $pdo = require_once "pdo.inc.php";
+
+// подключаем список вопросов
+$questions = require_once 'questions.php';
 
 $fullPath = __DIR__;
 $userAnswers = [];
@@ -16,7 +16,7 @@ $userAnswers = [];
 if (! empty($_COOKIE['quize'])) {
     $cookieid = $_COOKIE['quize'];
     // если есть какие-то символы кроме цифр, больших букв латинского алфавита
-    // знакак точка и маленьких букв "q", "u", "i", "z", "e" то это ошибка 
+    // знакак точка и маленьких букв "q", "u", "i", "z", "e" то это ошибка
     if (preg_match('/[^0-9A-Z\.quize]+/u', $cookieid)) {
         // можно конечно еще очистить куку,
         // но если человек ее намеренно портит, то зачем ему облегчать жизнь?
@@ -24,7 +24,6 @@ if (! empty($_COOKIE['quize'])) {
     }
 
     try {
-
         // запросим все данные по ответам пользователя
         $sql = "SELECT * FROM q_useranswers WHERE userid = :cookieid";
         $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);

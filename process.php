@@ -19,7 +19,7 @@ if (empty($_POST['answers'])) {
 $pdo = require_once "pdo.inc.php";
 
 // подключим файл с массивом вопросов
-require_once 'questions.php';
+$questions = require_once 'questions.php';
 
 $fullPath = __DIR__ . DIRECTORY_SEPARATOR . 'vote';
 
@@ -62,24 +62,34 @@ try {
     // то запишем их в БД
     if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
         // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
-        $sql = "SELECT id, questionid, variantid FROM q_useranswers WHERE userid = :cookieid LIMIT 100";
+        $sql = "SELECT id, questionid, variantid FROM q_useranswers WHERE userid = :userid LIMIT 100";
         $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $result = $sth->execute(['cookieid' => $cookieid]);
+        $result = $sth->execute([
+            'userid' => $cookieid
+        ]);
+
         if ($result) {
             while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                 // если пользователь уже отвечал на вопрос, то удалим его ответ из массива
                 if (isset($_POST['answers'][$row['questionid']])) {
                     // если пользователь изменил ответ, то обновим его и в БД
                     if ($row['variantid'] != $_POST['answers'][$row['questionid']]) {
-                        $sql = "UPDATE q_useranswers SET variantid=:variantid WHERE id=:answerid AND userid=:cookieid";
-                        $sth = $pdo->prepare($sql);
-                        $result = $sth->execute([
-                            'cookieid' => $cookieid,
+                        $sql = "UPDATE q_useranswers SET variantid=:variantid WHERE id=:answerid AND userid=:userid";
+                        $sth2 = $pdo->prepare($sql);
+                        $result = $sth2->execute([
+                            'userid' => $cookieid,
                             'answerid' => $row['id'],
                             'variantid' => $_POST['answers'][$row['questionid']]
                         ]);
                     }
                     unset($_POST['answers'][$row['questionid']]);
+                } else {
+                    $sql = "DELETE FROM q_useranswers WHERE id=:answerid AND userid=:userid";
+                    $sth2 = $pdo->prepare($sql);
+                    $result = $sth2->execute([
+                        'userid' => $cookieid,
+                        'answerid' => $row['id']
+                    ]);
                 }
             }
         }
@@ -91,23 +101,22 @@ try {
             $variantId = intval($variantId);
 
             // если пользователь не голосовал, нам нужен запрос на добавление данных
-            $sql = "INSERT INTO q_useranswers (userid, questionid, variantid) VALUES (:cookieid,:questionid,:variantid)";
-            $sth = $pdo->prepare($sql);
-            $result = $sth->execute([
-                'cookieid' => $cookieid,
+            $sql = "INSERT INTO q_useranswers (userid, questionid, variantid) VALUES (:userid,:questionid,:variantid)";
+            $sth2 = $pdo->prepare($sql);
+            $result = $sth2->execute([
+                'userid' => $cookieid,
                 'questionid' => $questionId,
                 'variantid' => $variantId
             ]);
             $answerId = $pdo->lastInsertId();
         }
-    }
 
-    if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
-        // удалим кеш, чтобы при следующем просмотре результатов
-        // данные пересчитались заново
-        unlink($fullPath . DIRECTORY_SEPARATOR . 'vote.cache');
+        if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
+            // удалим кеш, чтобы при следующем просмотре результатов
+            // данные пересчитались заново
+            unlink($fullPath . DIRECTORY_SEPARATOR . 'vote.cache');
+        }
     }
-
     header('Location: result.php');
 } catch (PDOException $e) {
     // сюда попадем если будет какая-то ошибка при работе с БД
