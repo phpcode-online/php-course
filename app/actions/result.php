@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 // подключаемся к БД
 // @var pdo PDO
-$pdo = $pdo ?? require_once "pdo.inc.php";
+$pdo = $pdo ?? require_once $appRoot . "pdo.inc.php";
 
-$questions = require_once 'questions.php';
+$questions = require_once $appRoot . 'questions.php';
 
-$fullPath = __DIR__;
+$fullPath = dirname($appRoot) . DIRECTORY_SEPARATOR . 'cache';
 $cookieid = isset($_COOKIE['quize']) ? $_COOKIE['quize'] : '';
 
 // нельзя доверять всему что пришло из интернета, поэтому
@@ -54,7 +54,7 @@ if ($cookieid > '') {
 }
 
 // если кеша нет, то создадим его
-if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
+if (!file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
     // переложим подсчет результатов на плечи БД
     $sql = "SELECT questionid, variantid, count(id) as vote FROM q_useranswers GROUP BY questionid, variantid;";
     $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -102,4 +102,4 @@ if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
     $total = unserialize(file_get_contents($fullPath . DIRECTORY_SEPARATOR . 'vote.cache'));
 }
 
-require_once 'results.tpl.php';
+require_once $appRoot . 'views/results.tpl.php';

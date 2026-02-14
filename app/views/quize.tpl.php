@@ -2,11 +2,11 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 21 - загрузка в БД</title>
+    <title>Урок 25 - загрузка в БД</title>
 </head>
 <body>
-    <h1>Урок 21.</h1>
-    <form action="process.php" method="POST">
+    <h1>Урок 25.</h1>
+    <form action="/process/" method="POST">
         <?php foreach ($questions as $questionid => $question) { ?>
         <p><?=$question['question']?></p>
         <ul type="none">

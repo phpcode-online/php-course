@@ -13,7 +13,8 @@
 * Урок 14: [Опросник - знакомство с кешем](https://github.com/phpcode-online/php-course/tree/lesson-14)
 * Урок 18: [Опросник - работа с БД](https://github.com/phpcode-online/php-course/tree/lesson-18)
 * Урок 19: [Опросник - оптимизируем выборку](https://github.com/phpcode-online/php-course/tree/lesson-19)
-* Урок 21: Опросник - загрузка в БД
+* Урок 21: [Опросник - загрузка в БД](https://github.com/phpcode-online/php-course/tree/lesson-21)
+* Урок 25: Опросник - изменение структуры папок
 
 # Запуск
 

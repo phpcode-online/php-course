@@ -16,12 +16,12 @@ if (empty($_POST['answers'])) {
 
 // подключаемся к БД
 // @var pdo PDO
-$pdo = require_once "pdo.inc.php";
+$pdo = require_once $appRoot . "pdo.inc.php";
 
 // подключим файл с массивом вопросов
-$questions = require_once 'questions.php';
+$questions = require_once $appRoot . 'questions.php';
 
-$fullPath = __DIR__ . DIRECTORY_SEPARATOR . 'vote';
+$fullPath = dirname($appRoot) . DIRECTORY_SEPARATOR . 'cache';
 
 // если куки нет, то создадим ее
 if (empty($_COOKIE['quize'])) {
@@ -117,7 +117,7 @@ try {
             unlink($fullPath . DIRECTORY_SEPARATOR . 'vote.cache');
         }
     }
-    header('Location: result.php');
+    header('Location: /result/');
 } catch (PDOException $e) {
     // сюда попадем если будет какая-то ошибка при работе с БД
     die('Шеф, с базой непонятки: ' . $e->getMessage() . '. File: ' . $e->getFile() . ' Line: ' . $e->getLine());

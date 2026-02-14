@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 // подключаемся к БД
 // @var pdo PDO
-$pdo = require_once "pdo.inc.php";
+$pdo = require_once $appRoot . "pdo.inc.php";
 
 // подключаем список вопросов
-$questions = require_once 'questions.php';
+$questions = require_once $appRoot . 'questions.php';
 
 $fullPath = __DIR__;
 $userAnswers = [];
@@ -56,4 +56,4 @@ if (! empty($_COOKIE['quize'])) {
 }
 
 // подключаем скрипт который отвечает за вывод вопросов
-require_once 'quize.tpl.php';
+require_once $appRoot . 'views/quize.tpl.php';

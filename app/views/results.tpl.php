@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 21 - загрузка в БД</title>
+    <title>Урок 25 - загрузка в БД</title>
 </head>
 <body>
 
@@ -31,7 +31,7 @@
         <p>Еще никто не голосовал. Вы можете стать первым.</p>
     <?php } ?>
     <p>
-        <a href="index.php">Вернуться к опросу</a>
+        <a href="/">Вернуться к опросу</a>
     </p>
 </body>
 </html>

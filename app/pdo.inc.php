@@ -3,7 +3,7 @@
 // опишем к какой БД будем подключаться и по какому адресу она находится
 // в данном случай БД типа mysql названная quizeproject
 
-$dbConfig = $dbConfig ?? require_once 'config.db.php';
+$dbConfig = $dbConfig ?? require_once $appRoot . 'configs/config.db.php';
 
 $dsn = 'mysql:dbname=' . $dbConfig['db'] . ';host=' . $dbConfig['host'] . ';port=' . $dbConfig['port'];
 $dbUser = $dbConfig['user'];
