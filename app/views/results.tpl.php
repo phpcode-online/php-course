@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 25 - загрузка в БД</title>
+    <title>Урок 28 - классы для работы с данными</title>
 </head>
 <body>
 

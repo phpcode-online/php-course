@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'autoload.inc.php';
+
 // путь до файлов с логикой
 $appRoot = dirname($_SERVER['DOCUMENT_ROOT']) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR;
 // санируем данные

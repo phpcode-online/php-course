@@ -19,7 +19,8 @@ if (empty($_POST['answers'])) {
 $pdo = require_once $appRoot . "pdo.inc.php";
 
 // подключим файл с массивом вопросов
-$questions = require_once $appRoot . 'questions.php';
+$quiz = new Quiz(['id' => 1], $pdo);
+$questions = $quiz->getQuestionsAsArray();
 
 $fullPath = dirname($appRoot) . DIRECTORY_SEPARATOR . 'cache';
 
@@ -61,38 +62,23 @@ try {
     // если есть ответы от пользователя,
     // то запишем их в БД
     if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
-        // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
-        $sql = "SELECT id, questionid, variantid FROM q_useranswers WHERE userid = :userid LIMIT 100";
-        $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $result = $sth->execute([
-            'userid' => $cookieid
-        ]);
+        UserAnswers::setPdo($pdo);
 
-        if ($result) {
-            while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-                // если пользователь уже отвечал на вопрос, то удалим его ответ из массива
-                if (isset($_POST['answers'][$row['questionid']])) {
-                    // если пользователь изменил ответ, то обновим его и в БД
-                    if ($row['variantid'] != $_POST['answers'][$row['questionid']]) {
-                        $sql = "UPDATE q_useranswers SET variantid=:variantid WHERE id=:answerid AND userid=:userid";
-                        $sth2 = $pdo->prepare($sql);
-                        $result = $sth2->execute([
-                            'userid' => $cookieid,
-                            'answerid' => $row['id'],
-                            'variantid' => $_POST['answers'][$row['questionid']]
-                        ]);
-                    }
-                    unset($_POST['answers'][$row['questionid']]);
-                } else {
-                    $sql = "DELETE FROM q_useranswers WHERE id=:answerid AND userid=:userid";
-                    $sth2 = $pdo->prepare($sql);
-                    $result = $sth2->execute([
-                        'userid' => $cookieid,
-                        'answerid' => $row['id']
-                    ]);
+        // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
+        foreach (UserAnswers::getAllUserAnswers($cookieid) as $userAnswer) {
+            // если пользователь уже отвечал на вопрос, то удалим его ответ из массива
+            if (isset($_POST['answers'][$userAnswer->getQuestionId()])) {
+                // если пользователь изменил ответ, то обновим его и в БД
+                if ($userAnswer->getVariantId() != $_POST['answers'][$userAnswer->getQuestionId()]) {
+                    $userAnswer->setVariantId($_POST['answers'][$userAnswer->getQuestionId()]);
+                    $userAnswer->save();
                 }
+                unset($_POST['answers'][$userAnswer->getQuestionId()]);
+            } else {
+                $userAnswer->delete();
             }
         }
+
 
         foreach ($_POST['answers'] as $questionId => $variantId) {
             // все данные, которые приходят через интернет, нужно проверять на валидность
@@ -100,15 +86,15 @@ try {
             $questionId = intval($questionId);
             $variantId = intval($variantId);
 
-            // если пользователь не голосовал, нам нужен запрос на добавление данных
-            $sql = "INSERT INTO q_useranswers (userid, questionid, variantid) VALUES (:userid,:questionid,:variantid)";
-            $sth2 = $pdo->prepare($sql);
-            $result = $sth2->execute([
-                'userid' => $cookieid,
-                'questionid' => $questionId,
-                'variantid' => $variantId
+            $userAnswer = new UserAnswers([
+                'id' => 0,
+                'userId' => $cookieid,
+                'questionId' => $questionId,
+                'variantId' => $variantId,
+                'created' => date('Y-m-d H:i:s')
             ]);
-            $answerId = $pdo->lastInsertId();
+            $userAnswer->save();
+            $answerId = $userAnswer->getId();
         }
 
         if (file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {

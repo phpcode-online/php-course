@@ -2,10 +2,10 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 25 - загрузка в БД</title>
+    <title>Урок 28 - классы для работы с данными</title>
 </head>
 <body>
-    <h1>Урок 25.</h1>
+    <h1>Урок 28.</h1>
     <form action="/process/" method="POST">
         <?php foreach ($questions as $questionid => $question) { ?>
         <p><?=$question['question']?></p>

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-function appLog($message, $file='log')
+function appLog($message, $file = 'log')
 {
     $logPath = dirname(__DIR__) . '/logs/';
     if (!is_dir($logPath)) {
@@ -14,7 +14,7 @@ function appLog($message, $file='log')
         fwrite($f, '[' . date('Y-m-d H:i:s.u') . '], ' . $ip . ', ' . $message . "\n");
         fclose($f);
     } else {
-        throw new Exception('Cannot open log file');
+        throw new \Exception('Cannot open log file');
     }
 }
 
@@ -49,7 +49,7 @@ function appException(Throwable $e)
     $debugstr = $e->getTraceAsString();
     $err  = $e->getMessage() . "; file: " . $e->getFile() . "; line: " . $e->getLine() . "\r\ntrace: " . $debugstr . "\r\n";
 
-    appLog($err, 'errors');
+    appLog($err, 'error');
 
     die('Temprary error' . PHP_EOL);
 }
@@ -66,8 +66,10 @@ function appAutoload($className)
     $appRoot = __DIR__ . DIRECTORY_SEPARATOR;
     $classPath = $appRoot . 'classes' . DIRECTORY_SEPARATOR;
 
-    if (defined('DEBUG')) { appLog('class path: ' . $classPath . ', className: ' . $className, 'debug'); }
-    if (defined('DEBUG')) { appLog('class path with replace: ' . $classPath . str_replace('\\', '/', $className) . '.php', 'debug'); }
+    if (defined('DEBUG')) { 
+        appLog('class path: ' . $classPath . ', className: ' . $className, 'debug');
+        appLog('class path with replace: ' . $classPath . str_replace('\\', '/', $className) . '.php', 'debug');
+    }
 
     /* Проверяем, есть ли класс в массиве для автозагрузки классов */
     if (file_exists($classPath . $className . '.php') ) {

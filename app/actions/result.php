@@ -6,7 +6,8 @@ declare(strict_types=1);
 // @var pdo PDO
 $pdo = $pdo ?? require_once $appRoot . "pdo.inc.php";
 
-$questions = require_once $appRoot . 'questions.php';
+$quiz = new Quiz(['id' => 1], $pdo);
+$questions = $quiz->getQuestionsAsArray();
 
 $fullPath = dirname($appRoot) . DIRECTORY_SEPARATOR . 'cache';
 $cookieid = isset($_COOKIE['quize']) ? $_COOKIE['quize'] : '';
@@ -18,27 +19,27 @@ $cookieid = isset($_COOKIE['quize']) ? $_COOKIE['quize'] : '';
 $cookieid = preg_replace('/[^0-9A-Z\.quize]+/u', '', trim($cookieid));
 
 // массив для результатов пользователя
-$userAnswers = array(
+$userAnswers = [
     // questionid => answerid
-);
+];
 
 // массив для обобщенных результатов
-$total = array(
-    // $questionid => array(vote => N, arVariants=> array(variantid1 => M1, variantid2 => M3, ...) )
-);
+$total = [
+    // $questionId => ['votes' => N, 'answers'=> ['variantId1' => M1, 'variantId2' => M3, ...) ]
+];
 
 // если кука есть проверим, голосовал ли человек
 if ($cookieid > '') {
     // запросим все данные по ответам пользователя
-    $sql = "SELECT * FROM q_useranswers WHERE userid = :cookieid";
+    $sql = "SELECT * FROM q_useranswers WHERE userId = :cookieid";
     $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
     $result = $sth->execute(['cookieid' => $cookieid]);
 
     if ($result) {
         // пройдемся по всем полученным данным и заполним массив с ответами пользователя
         while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-            $questionId = $row['questionid'];
-            $answerId = $row['variantid'];
+            $questionId = $row['questionId'];
+            $answerId = $row['variantId'];
 
             // если вопроса с указанным кодом нет, то пропустим
             if (
@@ -56,15 +57,15 @@ if ($cookieid > '') {
 // если кеша нет, то создадим его
 if (!file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
     // переложим подсчет результатов на плечи БД
-    $sql = "SELECT questionid, variantid, count(id) as vote FROM q_useranswers GROUP BY questionid, variantid;";
+    $sql = "SELECT questionId, variantId, count(id) as vote FROM q_useranswers GROUP BY questionId, variantId;";
     $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
     $result = $sth->execute();
 
     if ($result) {
         // пройдемся по всем полученным данным и заполним массив с ответами пользователя
         while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-            $questionId = $row['questionid'];
-            $answerId = $row['variantid'];
+            $questionId = $row['questionId'];
+            $answerId = $row['variantId'];
             $vote = $row['vote'];
 
             // если вопроса с указанным кодом нет, то пропустим
@@ -87,10 +88,10 @@ if (!file_exists($fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
 
             // из БД мы берем уже подсчитанное число голосов, поэтому сразу
             // его запишем в ответы и прибавим его же к общему числу
-            $total[$questionId]['answers'][$answerId] = array(
+            $total[$questionId]['answers'][$answerId] = [
                 'answer' => $questions[$questionId]['variants'][$answerId],
                 'votes' => $vote
-            );
+            ];
 
             $total[$questionId]['votes'] += $vote;
         }
