@@ -16,7 +16,8 @@
 * Урок 21: [Опросник - загрузка в БД](https://github.com/phpcode-online/php-course/tree/lesson-21)
 * Урок 25: [Опросник - изменение структуры папок](https://github.com/phpcode-online/php-course/tree/lesson-25)
 * Урок 26: [Опросник - автоподключение классов](https://github.com/phpcode-online/php-course/tree/lesson-26)
-* Урок 28: Опросник - Переписываем логику опроса на классы
+* Урок 28: [Опросник - Переписываем логику опроса на классы](https://github.com/phpcode-online/php-course/tree/lesson-28)
+* Урок 29: Опросник - Переписываем дейсвия на классы
 
 # Запуск
 

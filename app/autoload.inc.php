@@ -54,8 +54,10 @@ function appException(Throwable $e)
     die('Temprary error' . PHP_EOL);
 }
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'pdo.inc.php';
 
-spl_autoload_register('appAutoload');
+// регистрируем автозагрузчик классов
+spl_autoload_register('appAutoload', true);
 
 /**
  * функция для автозагрузки классов
@@ -65,14 +67,13 @@ function appAutoload($className)
 {
     $appRoot = __DIR__ . DIRECTORY_SEPARATOR;
     $classPath = $appRoot . 'classes' . DIRECTORY_SEPARATOR;
+    $actionPath = $appRoot . 'actions' . DIRECTORY_SEPARATOR;
 
-    if (defined('DEBUG')) { 
-        appLog('class path: ' . $classPath . ', className: ' . $className, 'debug');
-        appLog('class path with replace: ' . $classPath . str_replace('\\', '/', $className) . '.php', 'debug');
-    }
-
-    /* Проверяем, есть ли класс в массиве для автозагрузки классов */
-    if (file_exists($classPath . $className . '.php') ) {
+    /* Проверяем, есть является ли класс действием и если да, то подключаем файл с ним */
+    if (substr($className, -6) == 'Action' && file_exists($actionPath . $className . '.php')) {
+        require_once $actionPath . $className . '.php';
+        return true;
+    } elseif (file_exists($classPath . $className . '.php')) {
         require_once $classPath . $className . '.php';
         return true;
     } elseif (strpos($className, '\\') !== false && file_exists($classPath . str_replace('\\', '/', $className) . '.php')) {

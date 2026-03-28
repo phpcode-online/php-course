@@ -2,24 +2,24 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 28 - классы для работы с данными</title>
+    <title>Урок 29 - классы для работы с данными</title>
 </head>
 <body>
 
-    <?php if (! empty($userAnswers) && is_array($userAnswers)) { ?>
+    <?php if (! empty($this->userAnswers) && is_array($this->userAnswers)) { ?>
         <p>Вы проголосовали:</p>
         <ul type="none">
-        <?php foreach ($userAnswers as $questionid => $variantid) { ?>
-            <li><?=$questions[$questionid]['question']?> <b><?=$questions[$questionid]['variants'][$variantid]?></b></li>
+        <?php foreach ($this->userAnswers as $questionid => $variantid) { ?>
+            <li><?=$this->questions[$questionid]['question']?> <b><?=$this->questions[$questionid]['variants'][$variantid]?></b></li>
         <?php } ?>
         </ul>
     <?php } else { ?>
         <?php echo "Ваши ответы не найдены\n"; ?>
     <?php } ?>
     <br><br>
-    <?php if (! empty($total)) { ?>
+    <?php if (! empty($this->total)) { ?>
         <h3>Результаты голосования</h3>
-        <?php foreach ($total as $question) { ?>
+        <?php foreach ($this->total as $question) { ?>
             <h4><?=$question['question']?></h4>
             <ul>
                 <?php foreach ($question['answers'] as $answer) { ?>

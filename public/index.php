@@ -1,28 +1,27 @@
 <?php
 
-declare(strict_types=1);
+include dirname(__DIR__) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'autoload.inc.php';
 
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'autoload.inc.php';
-
-// путь до файлов с логикой
-$appRoot = dirname($_SERVER['DOCUMENT_ROOT']) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR;
-// санируем данные
+// санируем (удаляем все лишние символы) URI, 
+// который прислал браузер, чтобы не допустить атаки на сайт
 $uri = preg_replace('/[^a-zA-Z0-9\/\.]/iu', '', $_SERVER['REQUEST_URI']);
 $uri = preg_replace('/\.\.+/iu', '', $uri);
 
-// анализируем путь запроса для подключения нужного скрипта с логикой
 if ($uri == '/') {
-    $actionScript =  $appRoot . 'actions/index.php';
+    $actionName = 'Index';
 } elseif (substr($uri, -1) == '/') {
-    $actionScript = $appRoot . 'actions/' . substr($uri, 0, -1) . '.php';
+    $actionName = ucfirst(trim(substr($uri, 0, -1), '/'));
 } elseif (substr($uri, -4) == '.php') {
-    $actionScript = $appRoot . 'actions/' . $uri;
+    $actionName = ucfirst(basename($uri, '.php'));
 } else {
-    die('File Not Found.');
+    die('Action Not Found.');
 }
 
-if (! file_exists($actionScript)) {
-    die('File Not found: ' . $actionScript);
+try {
+    $actionClass = $actionName . 'Action';
+    $action = new $actionClass;
+    $action->run();
+} catch (Exception $e) {
+    // сюда попадем если будет какая-то не предвиденная ошибка (исключение)
+    die('Шеф, все пропало: ' . $e->getMessage() . '. File: ' . $e->getFile() . ' Line: ' . $e->getLine());
 }
-
-require_once $actionScript;
