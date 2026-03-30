@@ -2,9 +2,9 @@
 
 Исходный код для уроков.
 
-* Урок 01: [HTML страница](https://github.com/phpcode-online/php-course/releases/tag/lesson-01)
-* Урок 04: [Первая динамическая страница на PHP](https://github.com/phpcode-online/php-course/releases/tag/lesson-04)
-* Урок 06: [Игра кости - прогноз выпадения костей и 5 бросков кубика](https://github.com/phpcode-online/php-course/releases/tag/lesson-06)
+* Урок 01: [HTML страница](https://github.com/phpcode-online/php-course/tree/lesson-01)
+* Урок 04: [Первая динамическая страница на PHP](https://github.com/phpcode-online/php-course/tree/lesson-04)
+* Урок 06: [Игра кости - прогноз выпадения костей и 5 бросков кубика](https://github.com/phpcode-online/php-course/tree/lesson-06)
 * Урок 07: [Разделение кода на логику и отображение](https://github.com/phpcode-online/php-course/tree/lesson-07)
 * Урок 08: [Опросник - начало](https://github.com/phpcode-online/php-course/tree/lesson-08)
 * Урок 09: [Опросник - работа с файлами](https://github.com/phpcode-online/php-course/tree/lesson-09)
