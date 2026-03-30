@@ -17,7 +17,8 @@
 * Урок 25: [Опросник - изменение структуры папок](https://github.com/phpcode-online/php-course/tree/lesson-25)
 * Урок 26: [Опросник - автоподключение классов](https://github.com/phpcode-online/php-course/tree/lesson-26)
 * Урок 28: [Опросник - Переписываем логику опроса на классы](https://github.com/phpcode-online/php-course/tree/lesson-28)
-* Урок 29: Опросник - Переписываем дейсвия на классы
+* Урок 29: [Опросник - Переписываем дейсвия на классы](https://github.com/phpcode-online/php-course/tree/lesson-29)
+* Урок 30: Опросник - Рефакторинг
 
 # Запуск
 
