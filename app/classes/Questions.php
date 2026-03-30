@@ -2,64 +2,31 @@
 
 class Questions
 {
-    private $id;
-    private $quizeId;
-    private $question;
-    private $variants = [];
-    private $pdo;
+    /** @var int */
+    public $id;
+    /** @var int */
+    public $quizeId;
+    /** @var string */
+    public $question;
+    /** @var Variants[] */
+    public $variants = [];
 
-    public function __construct($params = [], PDO $pdo = null)
+    public $pdo;
+
+    public function __construct(PDO $pdo = null)
     {
-        if (isset($params['id'])) {
-            $this->id = $params['id'];
-        }
-        if (isset($params['quizeId'])) {
-            $this->quizeId = $params['quizeId'];
-        }
-        if (isset($params['question'])) {
-            $this->question = $params['question'];
-        }
-        if (isset($params['variants'])) {
-            $this->variants = $params['variants'];
-        }
-
         if ($pdo !== null) {
             $this->pdo = $pdo;
         }
     }
 
-    public function addVariant($variantId, $variantText)
+    public function addVariant(Variants $variant)
     {
-        $this->variants[$variantId] = $variantText;
+        $this->variants[$variant->id] = $variant;
     }
 
-    // методы для получения данных
-    public function getId()
+    public function getVariantName($variantId)
     {
-        return $this->id;
-    }
-
-    public function getQuizId()
-    {
-        return $this->quizId;
-    }
-
-    public function getQuestion()
-    {
-        return $this->question;
-    }
-
-    public function getVariants()
-    {
-        return $this->variants;
-    }
-
-    // преобразование в массив для совместимости со старыми шаблонами
-    public function toArray()
-    {
-        return [
-            'question' => $this->question,
-            'variants' => $this->variants
-        ];
+        return $this->variants[$variantId]->variant ?? '';
     }
 }

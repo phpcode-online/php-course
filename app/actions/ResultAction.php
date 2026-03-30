@@ -2,34 +2,16 @@
 
 declare(strict_types=1);
 
-class ResultAction
+class ResultAction extends BaseAction
 {
-    public $pdo;
     public $fullPath;
     public $questions = [];
-    public $quiz;
-    public $cookieId;
     public $userAnswers = [];
     public $total = [];
 
     public function run()
     {
-
-        // подключаемся к БД
-        // @var pdo PDO
-        $this->pdo = getPdo();
-
-        $this->quiz = new Quiz(['id' => 1], $this->pdo);
-        $this->questions = $this->quiz->getQuestionsAsArray();
-
-        $this->fullPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'cache';
-        $this->cookieId = isset($_COOKIE['quize']) ? $_COOKIE['quize'] : '';
-
-        // нельзя доверять всему что пришло из интернета, поэтому
-        // удалим из куки, который прислал браузер все лишние символы
-        // (в данном случае не важно, но в некоторых случаях нужно
-        //  делать проверку на лишние символы и если они есть - останавливать работу программы)
-        $this->cookieId = preg_replace('/[^0-9A-Z\.quize]+/u', '', trim($this->cookieId));
+        $this->fullPath = dirname($this->appPath) . DIRECTORY_SEPARATOR . 'cache';
 
         // массив для результатов пользователя
         $this->userAnswers = [
@@ -44,7 +26,7 @@ class ResultAction
         // если кука есть проверим, голосовал ли человек
         if ($this->cookieId > '') {
             // запросим все данные по ответам пользователя
-            $this->userAnswers = UserAnswers::getUserAnswers($this->cookieId, $this->questions, $this->pdo);
+            $this->userAnswers = UserAnswers::getUserAnswers($this->cookieId, $this->quiz, $this->pdo);
         }
 
         // если кеша нет, то создадим его
@@ -58,13 +40,14 @@ class ResultAction
                 // пройдемся по всем полученным данным и заполним массив с ответами пользователя
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                     $questionId = $row['questionId'];
+                    $question = $this->quiz->getQuestion($questionId);
                     $answerId = $row['variantId'];
                     $vote = $row['vote'];
 
                     // если вопроса с указанным кодом нет, то пропустим
                     if (
-                        empty($this->questions[$questionId])
-                        || empty($this->questions[$questionId]['variants'][$answerId])
+                        ! $question
+                        || empty($question->variants[$answerId])
                     ) {
                         continue;
                     }
@@ -74,7 +57,7 @@ class ResultAction
                     if (empty($this->total[$questionId])) {
                         $this->total[$questionId] = [
                             'votes' => 0,
-                            'question' => $this->questions[$questionId]['question'],
+                            'question' => $question->question,
                             'answers' => []
                         ];
                     }
@@ -82,7 +65,7 @@ class ResultAction
                     // из БД мы берем уже подсчитанное число голосов, поэтому сразу
                     // его запишем в ответы и прибавим его же к общему числу
                     $this->total[$questionId]['answers'][$answerId] = [
-                        'answer' => $this->questions[$questionId]['variants'][$answerId],
+                        'answer' => $question->variants[$answerId],
                         'votes' => $vote
                     ];
 
@@ -96,6 +79,6 @@ class ResultAction
             $this->total = unserialize(file_get_contents($this->fullPath . DIRECTORY_SEPARATOR . 'vote.cache'));
         }
 
-        require_once dirname(__DIR__) . '/views/results.tpl.php';
+        require_once $this->appPath . '/views/results.tpl.php';
     }
 }

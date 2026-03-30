@@ -8,34 +8,16 @@
 
 declare(strict_types=1);
 
-class ProcessAction
+class ProcessAction extends BaseAction
 {
-    public $quiz;
     public $questions;
     public $fullPath;
-    public $cookieId;
-    public $pdo;
 
-    public function run()
+    public function __construct()
     {
-        // если ответа нет, то перенаправим пользователя на страницу с формой
-        if (empty($_POST['answers'])) {
-            header('Location: /');
-            die(0);
-        }
+        parent::__construct();
 
-        // подключаемся к БД
-        // @var pdo PDO
-        $this->pdo = getPDO();
-
-        // подключим файл с массивом вопросов
-        $this->quiz = new Quiz(['id' => 1], $this->pdo);
-        $this->questions = $this->quiz->getQuestionsAsArray();
-
-        $this->fullPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'cache';
-
-        // если куки нет, то создадим ее
-        if (empty($_COOKIE['quize'])) {
+        if (! $this->cookieId || empty($_COOKIE['quize'])) {
             $abc = [
                 '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
                 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'O','I', 'P',
@@ -55,37 +37,39 @@ class ProcessAction
             setcookie("quize", $this->cookieId, time() + (3600 * 24 * 30), "/", "", false, true);
 
             $_COOKIE['quize'] = $this->cookieId;
-        } else {
-            $this->cookieId = preg_replace('/[^0-9A-Z.]/iu', '', $_COOKIE['quize']);
-
-            // если кука есть, то проверим ее, а вдруг нам что-то странное передали
-            // если в куке есть что-то кроме букв, цифр и запятой,
-            // то значит нам что-то подсунули и мы можем завершить работу
-            if (preg_match('/[^0-9A-Zquize\.]+/u', $this->cookieId)) {
-                // можно конечно еще очистить куку,
-                // но если человек ее намеренно портит, то зачем ему облегчать жизнь?
-                die('Error!');
-            }
         }
+    }
+
+    public function run()
+    {
+        // если ответа нет, то перенаправим пользователя на страницу с формой
+        if (empty($_POST['answers'])) {
+            header('Location: /');
+            die(0);
+        }
+
+        // подключим файл с массивом вопросов
+        $this->questions = $this->quiz->getQuestions();
+
+        $this->fullPath = dirname($this->appPath) . DIRECTORY_SEPARATOR . 'cache';
 
         try {
             // если есть ответы от пользователя,
             // то запишем их в БД
             if (! empty($_POST['answers']) && is_array($_POST['answers'])) {
-                // UserAnswers::setPdo($this->pdo);
 
                 // проверим, вдруг уже пользователь голосовал и тогда нам нужно изменить его предыдущее голосование.
                 foreach (UserAnswers::getAllUserAnswers($this->cookieId, $this->pdo) as $userAnswer) {
                     // если пользователь уже отвечал на вопрос, то удалим его ответ из массива
-                    if (isset($_POST['answers'][$userAnswer->getQuestionId()])) {
+                    if (isset($_POST['answers'][$userAnswer->questionId])) {
                         // если пользователь изменил ответ, то обновим его и в БД
-                        if ($userAnswer->getVariantId() != $_POST['answers'][$userAnswer->getQuestionId()]) {
-                            $userAnswer->setVariantId($_POST['answers'][$userAnswer->getQuestionId()]);
-                            $userAnswer->save();
+                        if ($userAnswer->variantId != $_POST['answers'][$userAnswer->questionId]) {
+                            $userAnswer->variantId = $_POST['answers'][$userAnswer->questionId];
+                            $userAnswer->save($this->pdo);
                         }
-                        unset($_POST['answers'][$userAnswer->getQuestionId()]);
+                        unset($_POST['answers'][$userAnswer->questionId]);
                     } else {
-                        $userAnswer->delete();
+                        $userAnswer->delete($this->pdo);
                     }
                 }
 
@@ -103,8 +87,8 @@ class ProcessAction
                         'variantId' => $variantId,
                         'created' => date('Y-m-d H:i:s')
                     ], $this->pdo);
-                    $userAnswer->save();
-                    $answerId = $userAnswer->getId();
+                    $userAnswer->save($this->pdo);
+                    $answerId = $userAnswer->id;
                 }
 
                 if (file_exists($this->fullPath . DIRECTORY_SEPARATOR . 'vote.cache')) {
@@ -121,7 +105,5 @@ class ProcessAction
             // сюда попадем если будет какая-то не предвиденная ошибка (исключение)
             die('Шеф, все пропало: ' . $e->getMessage() . '. File: ' . $e->getFile() . ' Line: ' . $e->getLine());
         }
-
     }
-
 }

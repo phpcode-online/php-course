@@ -2,99 +2,25 @@
 
 class UserAnswers
 {
-    private $id;
-    private $userId;
-    private $questionId;
-    private $variantId;
-    private $created;
+    /** @var int */
+    public $id;
+    /** @var int */
+    public $userId;
+    /** @var int */
+    public $questionId;
+    /** @var int */
+    public $variantId;
+    /** @var string */
+    public $created;
 
-    // @param PDO $pdo - объект для работы с базой данных
-    private static $pdo;
+    /** @var PDO $pdo - объект для работы с базой данных */
+    public static $pdo;
 
-    public function __construct($params = [], $pdo = null)
+    public function __construct(PDO $pdo = null)
     {
-        if (isset($params['id'])) {
-            $this->id = $params['id'];
-        }
-
-        if (isset($params['userId'])) {
-            $this->userId = $params['userId'];
-        }
-
-        if (isset($params['questionId'])) {
-            $this->questionId = $params['questionId'];
-        }
-
-        if (isset($params['variantId'])) {
-            $this->variantId = $params['variantId'];
-        }
-
-        if (isset($params['created'])) {
-            $this->created = $params['created'];
-        }
-
         if ($pdo !== null) {
-            self::setPdo($pdo);
+            self::$pdo = $pdo;
         }
-    }
-
-    public static function setPdo(PDO $pdo)
-    {
-        self::$pdo = $pdo;
-    }
-
-    public static function getPdo()
-    {
-        return self::$pdo;
-    }
-
-    public function getQuestionId()
-    {
-        return $this->questionId;
-    }
-
-    public function setQuestionId($questionId)
-    {
-        $this->questionId = $questionId;
-        return $this;
-    }
-
-    public function getVariantId()
-    {
-        return $this->variantId;
-    }
-
-    public function setVariantId($variantId)
-    {
-        $this->variantId = $variantId;
-        return $this;
-    }
-
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    public function setId($id)
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    public function getUserId()
-    {
-        return $this->userId;
-    }
-
-    public function setUserId($userId)
-    {
-        $this->userId = $userId;
-        return $this;
-    }
-
-    public function getCreated()
-    {
-        return $this->created;
     }
 
     public function setCreated($created = '')
@@ -103,33 +29,32 @@ class UserAnswers
         return $this;
     }
 
-    public static function getUserAnswers($userId, $questions, $pdo = null)
+    public static function getUserAnswers($userId, $quiz, $pdo = null)
     {
         $userAnswers = [];
+        $questions = $quiz->getQuestions();
         try {
-            $pdo = $pdo ?? self::getPdo();
-            UserAnswers::setPdo($pdo);
+            $pdo = $pdo ?? self::$pdo;
             // запросим все данные по ответам пользователя
             $sql = "SELECT * FROM q_useranswers WHERE userId = :userId";
             $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-            $sth->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, 'UserAnswers', [[], $pdo]);
+            $sth->setFetchMode(PDO::FETCH_CLASS, 'UserAnswers', [$pdo]);
             $result = $sth->execute(['userId' => $userId]);
 
             if ($result) {
                 // пройдемся по всем полученным данным и заполним массив с ответами пользователя
                 while (($userAnswer = $sth->fetch()) !== false) {
-                    $questionId = $userAnswer->getQuestionId();
-                    $answerId = $userAnswer->getVariantId();
+                    $question = $quiz->getQuestion($userAnswer->questionId);
 
                     // если вопроса с указанным кодом нет, то пропустим
                     if (
-                        empty($questions[$questionId])
-                        || empty($questions[$questionId]['variants'][$answerId])
+                        !$question
+                        || empty($question->variants[$userAnswer->variantId])
                     ) {
                         continue;
                     }
 
-                    $userAnswers[$questionId] = $answerId;
+                    $userAnswers[$userAnswer->questionId] = $userAnswer; // $answerId;
                 }
             }
         } catch (PDOException $e) {
@@ -149,17 +74,17 @@ class UserAnswers
     {
         $userAnswers = [];
         try {
-            $pdo = $pdo ?? self::getPdo();
+            $pdo = $pdo ?? self::$pdo;
             // запросим все данные по ответам пользователя
             $sql = "SELECT * FROM q_useranswers WHERE userId = :userId";
             $sth = $pdo->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-            $sth->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, 'UserAnswers', [[], $pdo]);
+            $sth->setFetchMode(PDO::FETCH_CLASS, 'UserAnswers', [$pdo]);
 
             $result = $sth->execute(['userId' => $userId]);
 
             if ($result) {
                 // пройдемся по всем полученным данным и заполним массив с ответами пользователя
-                $userAnswers = $sth->fetchAll(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, 'UserAnswers', [[], $pdo]);
+                $userAnswers = $sth->fetchAll(PDO::FETCH_CLASS, 'UserAnswers', [$pdo]);
             }
         } catch (PDOException $e) {
             // сюда попадем если будет какая-то ошибка при работе с БД
@@ -176,7 +101,7 @@ class UserAnswers
 
     public function save($pdo = null)
     {
-        $pdo = $pdo ?? self::getPdo();
+        $pdo = $pdo ?? self::$pdo;
         if ($this->id > 0) {
             // если id больше 0, то это значит, что ответ уже есть в БД и нам нужно его обновить
             $sql = "UPDATE q_useranswers SET variantId=:variantId WHERE id=:answerId AND userId=:userId";
@@ -204,7 +129,7 @@ class UserAnswers
 
     public function delete($pdo = null)
     {
-        $pdo = $pdo ?? self::getPdo();
+        $pdo = $pdo ?? self::$pdo;
         if ($this->id > 0) {
             $sql = "DELETE FROM q_useranswers WHERE id=:answerId AND userId=:userId";
             $sth = $pdo->prepare($sql);
@@ -215,5 +140,4 @@ class UserAnswers
         }
         return false;
     }
-
 }

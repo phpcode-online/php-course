@@ -2,21 +2,21 @@
 <html>
 <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
-    <title>Урок 29 - классы для работы с данными</title>
+    <title>Урок 30 - оптимизации</title>
 </head>
 <body>
-    <h1>Урок 29.</h1>
+    <h1>Урок 30 - оптимизации</h1>
     <form action="/process/" method="POST">
-        <?php foreach ($this->questions as $questionid => $question) { ?>
-        <p><?=$question['question']?></p>
+        <?php foreach ($this->quiz->getQuestions() as $questionId => $question) { ?>
+        <p><?=$question->question?></p>
         <ul type="none">
-            <?php foreach ($question['variants'] as $variantid => $variant) { ?>
+            <?php foreach ($question->variants as $variantId => $variant) { ?>
             <li>
                 <label><input
                     type="radio"
-                    name="answers[<?=$questionid?>]"
-                    value="<?=$variantid?>"
-                    <?=(isset($this->userAnswers[$questionid]) && $this->userAnswers[$questionid] == $variantid ? 'checked="checked"' : '')?>><?=$variant?></label>
+                    name="answers[<?=$questionId?>]"
+                    value="<?=$variantId?>"
+                    <?=(isset($this->userAnswers[$questionId]) && $this->userAnswers[$questionId]->variantId == $variantId ? 'checked="checked"' : '')?>><?=$variant->variant?></label>
             </li>
             <?php } ?>
         </ul>

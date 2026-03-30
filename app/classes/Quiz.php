@@ -2,15 +2,15 @@
 
 class Quiz
 {
-    private $id;
-    private $questions = [];
-    private $pdo;
+    /** @var int */
+    public $id;
+    /** @var Questions[] */
+    public $questions;
+    /** @var PDO */
+    public $pdo;
 
-    public function __construct($params, PDO $pdo = null)
+    public function __construct(PDO $pdo = null)
     {
-        if (isset($params['id'])) {
-            $this->id = $params['id'];
-        }
         if ($pdo !== null) {
             $this->pdo = $pdo;
         }
@@ -25,25 +25,21 @@ class Quiz
             $sql = "SELECT * FROM q_questions WHERE quizeId = :quizeId ORDER BY id";
             $sth = $this->pdo->prepare($sql);
             $sth->execute(['quizeId' => $this->id]);
-            $sth->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, 'Questions', [[], $this->pdo]);
+            $sth->setFetchMode(PDO::FETCH_CLASS, 'Questions', [$this->pdo]);
 
             while ($question = $sth->fetch()) {
-                $this->questions[$question->getId()] = $question;
+                $this->questions[$question->id] = $question;
             }
-
 
             // загружаем варианты ответов
             $sql = "SELECT * FROM q_variants WHERE quizeId = :quizeId";
             $sth = $this->pdo->prepare($sql);
-            $sth->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, 'Variants', [[], $this->pdo]);
+            $sth->setFetchMode(PDO::FETCH_CLASS, 'Variants', [$this->pdo]);
             $sth->execute(['quizeId' => $this->id]);
 
-            while ($row = $sth->fetch()) {
-                if (isset($this->questions[$row->getQuestionId()])) {
-                    $this->questions[$row->getQuestionId()]->addVariant(
-                        $row->getId(),
-                        $row->getVariant()
-                    );
+            while ($variant = $sth->fetch()) {
+                if (isset($this->questions[$variant->questionId])) {
+                    $this->questions[$variant->questionId]->addVariant($variant);
                 }
             }
         } catch (PDOException $e) {
@@ -53,21 +49,18 @@ class Quiz
 
     public function getQuestions()
     {
+        if ($this->questions === null) {
+            $this->loadQuestions();
+        }
         return $this->questions;
     }
 
     public function getQuestion($id)
     {
+        if ($this->questions === null) {
+            $this->loadQuestions();
+        }
         return $this->questions[$id] ?? null;
     }
 
-    // для совместимости со старыми шаблонами возвращаем массив
-    public function getQuestionsAsArray()
-    {
-        $result = [];
-        foreach ($this->questions as $id => $question) {
-            $result[$id] = $question->toArray();
-        }
-        return $result;
-    }
 }
